@@ -22,6 +22,7 @@ use ironworks::{
 
 #[derive(Debug, Parser)]
 pub struct MapsArgs {
+	/// Output image format
 	#[arg(short, long, default_value_t = ImageFormat::Png)]
 	format: ImageFormat,
 }

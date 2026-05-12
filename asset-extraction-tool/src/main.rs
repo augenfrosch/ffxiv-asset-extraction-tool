@@ -18,13 +18,14 @@ use ironworks::{
 const VERSION: VersionKey = VersionKey; // Stand-in version key for the installed version
 
 #[derive(Debug, Parser)]
+#[command(version)]
 struct Args {
-	/// Set the input directory containing the game install.
+	/// Input directory containing the game install.
 	///
 	/// The directory must be the base directory for the game install, i.e., it must contain the `game` subdirectory.
 	#[arg(short, long = "input", value_name = "PATH")]
 	input_dir: PathBuf,
-	/// Set the output directory.
+	/// Output directory.
 	///
 	/// Directories are created if they are missing. The default creates a new `output` directory in the current working directory.
 	#[arg(short, long = "output", value_name = "PATH", default_value = "output")]

@@ -57,9 +57,13 @@ impl FromStr for Resolution {
 
 #[derive(Debug, Parser)]
 pub struct IconsArgs {
+	/// Output image format
 	#[arg(short, long, default_value_t = ImageFormat::Png)]
 	format: ImageFormat,
 
+	/// Resolution to export. 
+	/// 
+	/// Defaults to `hr1`, which is the highest resolution available as of patch 7.5. Use `lr` for the low resolution.
 	#[arg(short, long, default_value_t = Resolution { index: 1 }, value_parser = Resolution::from_str)]
 	resolution: Resolution,
 }
