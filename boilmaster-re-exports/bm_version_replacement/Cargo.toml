@@ -2,6 +2,7 @@
 name = "bm_version"
 version = "0.0.0"
 edition.workspace = true
+license.workspace = true
 
 [lints]
 workspace = true
