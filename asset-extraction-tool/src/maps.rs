@@ -1,4 +1,9 @@
-use std::{collections::HashSet, fs, path::PathBuf, sync::Arc};
+use std::{
+	collections::HashSet,
+	fs,
+	path::PathBuf,
+	sync::{Arc, LazyLock},
+};
 
 use crate::{ImageFormat, VERSION};
 
@@ -21,10 +26,11 @@ pub struct MapsArgs {
 	format: ImageFormat,
 }
 
+static INPUT: LazyLock<Input> = LazyLock::new(|| Input::new());
+
 pub fn se_string_to_plaintext(se_string: &SeString) -> Result<String> {
 	let mut writer = PlainString::new();
-	// TODO: don't allocate Input each time this is executed
-	format(se_string.as_ref(), &Input::new(), &mut writer)?;
+	format(se_string.as_ref(), &INPUT, &mut writer)?;
 	Ok(String::from(writer))
 }
 
