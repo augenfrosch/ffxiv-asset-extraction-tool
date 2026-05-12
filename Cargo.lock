@@ -137,10 +137,25 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c4512299f36f043ab09a583e57bceb5a5aab7a73db1805848e8fef3c9e8c78b3"
 
 [[package]]
+name = "bm_data"
+version = "0.0.0"
+dependencies = [
+ "anyhow",
+ "bm_version",
+ "ironworks",
+]
+
+[[package]]
+name = "bm_version"
+version = "0.0.0"
+
+[[package]]
 name = "boilmaster-re-exports"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "bm_data",
+ "bm_version",
  "image",
  "image_dds",
  "ironworks",
@@ -281,6 +296,8 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "binrw 0.15.1",
+ "bm_data",
+ "bm_version",
  "boilmaster-re-exports",
  "clap",
  "ironworks",

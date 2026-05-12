@@ -1,6 +1,6 @@
 [package]
 name = "ffxiv-asset-extraction-tool"
-version = "0.1.0"
+version.workspace = true
 edition.workspace = true
 
 [lints]
@@ -8,6 +8,8 @@ workspace = true
 
 [dependencies]
 boilmaster-re-exports = { workspace = true }
+bm_data = { workspace = true }
+bm_version = { workspace = true }
 
 anyhow = { workspace = true }
 binrw = { version = "0.15" }

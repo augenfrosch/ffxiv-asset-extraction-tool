@@ -1,3 +1,10 @@
+// Best I could come up with without having to manually ensure everything in the modules is used in some form
+#![allow(dead_code)]
+
+#[rustfmt::skip]
+#[path = "../boilmaster/crates/bm_asset/src/convert.rs"]
+mod convert;
+
 #[rustfmt::skip]
 #[path = "../boilmaster/crates/bm_asset/src/error.rs"]
 pub mod error;
@@ -7,20 +14,9 @@ pub mod error;
 pub mod format;
 
 #[rustfmt::skip]
+#[path = "../boilmaster/crates/bm_asset/src/service.rs"]
+pub mod service;
+
+#[rustfmt::skip]
 #[path = "../boilmaster/crates/bm_asset/src/texture.rs"]
-pub mod texture;
-
-mod convert {
-	use crate::asset::format;
-
-	pub trait Converter {}
-
-	pub struct Image;
-
-	impl Converter for Image {}
-
-	#[expect(dead_code)]
-	fn use_unused_to_avoid_having_to_do_even_more_cursed_things() {
-		let _ = format::Format::Png.converter();
-	}
-}
+mod texture;
