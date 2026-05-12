@@ -1,0 +1,18 @@
+[package]
+name = "boilmaster-re-exports"
+version = "0.1.0"
+edition.workspace = true
+
+[lints]
+workspace = true
+
+[dependencies]
+# bm_asset
+anyhow = { workspace = true }
+image = { version = "0.25.1", default-features = false, features = ["jpeg", "png", "webp"] }
+image_dds = { version = "0.7.0", default-features = false, features = ["image"]}
+ironworks = { workspace = true, features = ["tex"] }
+itertools = { version = "0.14.0" }
+serde = { version = "1.0.137" }
+strum = { version = "0.26.2", features = ["derive"] }
+thiserror = { version = "2.0.3" }
