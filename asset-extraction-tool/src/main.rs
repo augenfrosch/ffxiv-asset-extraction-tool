@@ -2,6 +2,8 @@ use std::{fmt::Display, fs, path::PathBuf, sync::Arc};
 
 mod icons;
 use icons::{IconsArgs, extract_icons};
+mod maps;
+use maps::{MapsArgs, extract_maps};
 
 use anyhow::Result;
 use bm_data::Data;
@@ -82,16 +84,6 @@ impl From<ImageFormat> for Format {
 // 	image_format: Option<ImageFormat>,
 // }
 
-#[derive(Debug, Parser)]
-pub struct MapsArgs {
-	#[arg(short, long, default_value_t = ImageFormat::Png)]
-	format: ImageFormat,
-}
-
-fn extract_maps(asset_service: AssetService, args: MapsArgs, output_dir: &PathBuf) -> Result<()> {
-	Ok(())
-}
-
 fn main() -> Result<()> {
 	let Args {
 		input_dir,
@@ -101,15 +93,15 @@ fn main() -> Result<()> {
 
 	fs::create_dir_all(&output_dir)?;
 
-	let ironworks = Ironworks::new().with_resource(SqPack::new(Install::at(&input_dir)));
+	let ironworks = Arc::new(Ironworks::new().with_resource(SqPack::new(Install::at(&input_dir))));
 	let data = Arc::new(Data {
-		ironworks: Arc::new(ironworks),
+		ironworks: ironworks.clone(),
 	});
 	let asset_service = AssetService::new(data);
 
 	match command {
 		Command::Icons(args) => extract_icons(asset_service, args, &output_dir)?,
-		Command::Maps(args) => extract_maps(asset_service, args, &output_dir)?,
+		Command::Maps(args) => extract_maps(ironworks, asset_service, args, &output_dir)?,
 	}
 
 	Ok(())

@@ -14,4 +14,4 @@ bm_version = { workspace = true }
 anyhow = { workspace = true }
 binrw = { version = "0.15" }
 clap = { version = "4.6", features = ["derive"] }
-ironworks = { workspace = true, features = ["sqpack"] }
+ironworks = { workspace = true, features = ["sqpack", "excel"] }
