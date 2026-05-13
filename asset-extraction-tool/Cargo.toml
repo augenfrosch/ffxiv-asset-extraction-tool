@@ -16,3 +16,5 @@ anyhow = { workspace = true }
 binrw = { version = "0.15" }
 clap = { version = "4.6", features = ["derive"] }
 ironworks = { workspace = true, features = ["sqpack", "excel"] }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true, features = ["env-filter"] }

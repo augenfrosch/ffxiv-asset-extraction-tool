@@ -85,7 +85,18 @@ impl From<ImageFormat> for Format {
 // 	image_format: Option<ImageFormat>,
 // }
 
+fn init_logging() -> Result<()> {
+	use tracing_subscriber::{EnvFilter, fmt, prelude::*};
+
+	Ok(tracing_subscriber::registry()
+		.with(fmt::layer().with_target(false).without_time())
+		.with(EnvFilter::from_default_env())
+		.try_init()?)
+}
+
 fn main() -> Result<()> {
+	init_logging()?;
+
 	let Args {
 		input_dir,
 		output_dir,

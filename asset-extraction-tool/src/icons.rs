@@ -174,23 +174,32 @@ pub fn extract_icons(
 	args: IconsArgs,
 	output_dir: &Path,
 ) -> Result<()> {
+	let _span = tracing::debug_span!("Extract icons").entered();
+
 	let format = Format::from(args.format);
 	let resolution_suffix = args.resolution.filename_suffix();
-
 	for id in args.range {
 		let folder_id = id - (id % 1000);
-		let path = format!("ui/icon/{folder_id:0>6}/{id:0>6}{resolution_suffix}.tex");
+		for subfolder in ["", "hq/", "en/", "ja/", "de/", "fr/"] {
+			let path =
+				format!("ui/icon/{folder_id:0>6}/{subfolder}{id:0>6}{resolution_suffix}.tex");
 
-		let bytes = match asset_service.convert(VERSION, &path, format) {
-			Err(boilmaster_re_exports::asset::error::Error::NotFound(_path)) => continue,
-			err => err?,
-		};
+			let bytes = match asset_service.convert(VERSION, &path, format) {
+				Ok(bytes) => bytes,
+				Err(boilmaster_re_exports::asset::error::Error::NotFound(_path)) => continue,
+				Err(boilmaster_re_exports::asset::error::Error::Failure(err)) => {
+					tracing::debug!(path, "Failure to read asset: {err}", err = err.root_cause());
+					continue;
+				},
+				Err(err) => Err(err)?,
+			};
 
-		let output_path = output_dir.join(path);
-		if let Some(parent) = output_path.parent() {
-			fs::create_dir_all(parent)?;
+			let output_path = output_dir.join(path);
+			if let Some(parent) = output_path.parent() {
+				fs::create_dir_all(parent)?;
+			}
+			fs::write(output_path.with_extension(format.extension()), bytes)?;
 		}
-		fs::write(output_path.with_extension(format.extension()), bytes)?;
 	}
 
 	Ok(())

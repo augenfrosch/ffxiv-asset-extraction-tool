@@ -23,6 +23,7 @@ bm_version = { path = "./boilmaster-re-exports/bm_version_replacement" }
 anyhow = { version = "1.0" }
 ironworks = { version = "0.4.1", git = "https://github.com/ackwell/ironworks" }
 tracing = { version = "0.1" }
+tracing-subscriber = { version = "0.3" }
 
 [profile.release]
 opt-level = 3
