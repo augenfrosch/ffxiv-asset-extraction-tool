@@ -1,7 +1,7 @@
 use std::{
 	collections::HashSet,
 	fs,
-	path::PathBuf,
+	path::Path,
 	sync::{Arc, LazyLock},
 };
 
@@ -27,7 +27,7 @@ pub struct MapsArgs {
 	format: ImageFormat,
 }
 
-static INPUT: LazyLock<Input> = LazyLock::new(|| Input::new());
+static INPUT: LazyLock<Input> = LazyLock::new(Input::new);
 
 pub fn se_string_to_plaintext(se_string: &SeString) -> Result<String> {
 	let mut writer = PlainString::new();
@@ -38,9 +38,9 @@ pub fn se_string_to_plaintext(se_string: &SeString) -> Result<String> {
 // TODO: look into some oddities, e.g., `r2t2/00` is completely black, `s1i3/01` and many other maps have black borders
 pub fn extract_maps(
 	ironworks: Arc<Ironworks>,
-	asset_service: AssetService,
-	args: MapsArgs,
-	output_dir: &PathBuf,
+	asset_service: &AssetService,
+	args: &MapsArgs,
+	output_dir: &Path,
 ) -> Result<()> {
 	let format = Format::from(args.format);
 	let excel = Excel::new(ironworks);
@@ -65,10 +65,8 @@ pub fn extract_maps(
 		};
 		if seen.contains(&id_string) {
 			continue;
-		};
-		let (territory, index) = if let Some((territory, index)) = id_string.split_once('/') {
-			(territory, index)
-		} else {
+		}
+		let Some((territory, index)) = id_string.split_once('/') else {
 			continue;
 		};
 

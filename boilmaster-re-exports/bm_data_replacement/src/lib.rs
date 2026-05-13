@@ -13,6 +13,7 @@ pub struct Version {
 }
 
 impl Data {
+	#[expect(clippy::missing_errors_doc)]
 	pub fn version(&self, _version: VersionKey) -> Result<Version> {
 		Ok(Version {
 			ironworks: self.ironworks.clone(),
@@ -21,6 +22,7 @@ impl Data {
 }
 
 impl Version {
+	#[must_use]
 	pub fn ironworks(&self) -> Arc<Ironworks> {
 		self.ironworks.clone()
 	}

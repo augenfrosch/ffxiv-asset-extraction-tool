@@ -4,7 +4,7 @@ use std::{
 	fs,
 	num::ParseIntError,
 	ops::{Range as OpsRange, RangeInclusive},
-	path::PathBuf,
+	path::Path,
 	str::FromStr,
 };
 
@@ -20,9 +20,9 @@ pub struct Resolution {
 }
 
 impl Resolution {
-	pub fn filename_suffix(&self) -> String {
+	pub fn filename_suffix(self) -> String {
 		match self.index {
-			0 => "".into(),
+			0 => String::new(),
 			1..=u8::MAX => format!("_{self}"),
 		}
 	}
@@ -132,21 +132,20 @@ impl FromStr for IconIdRange {
 	type Err = ParseRangeError;
 
 	fn from_str(s: &str) -> std::prelude::v1::Result<Self, Self::Err> {
-		let (start, rest) = s
-			.split_once("..")
-			.ok_or_else(|| ParseRangeError::MissingMark)?;
+		let (start, rest) = s.split_once("..").ok_or(ParseRangeError::MissingMark)?;
 		let (inclusive, end) = match rest.split_once('=') {
 			Some(("", end)) => (true, end),
 			Some((_, _end)) => return Err(ParseRangeError::InvalidMark),
 			None => (false, rest),
 		};
 
-		let start = u32::from_str(start).map_err(|err| ParseRangeError::BoundNotParsable(err))?;
-		let end = u32::from_str(end).map_err(|err| ParseRangeError::BoundNotParsable(err))?;
+		let start = u32::from_str(start).map_err(ParseRangeError::BoundNotParsable)?;
+		let end = u32::from_str(end).map_err(ParseRangeError::BoundNotParsable)?;
 
-		match inclusive {
-			true => Ok(Self::Inclusive(RangeInclusive::new(start, end))),
-			false => Ok(Self::Exclusive(OpsRange { start, end })),
+		if inclusive {
+			Ok(Self::Inclusive(RangeInclusive::new(start, end)))
+		} else {
+			Ok(Self::Exclusive(OpsRange { start, end }))
 		}
 	}
 }
@@ -171,9 +170,9 @@ pub struct IconsArgs {
 }
 
 pub fn extract_icons(
-	asset_service: AssetService,
+	asset_service: &AssetService,
 	args: IconsArgs,
-	output_dir: &PathBuf,
+	output_dir: &Path,
 ) -> Result<()> {
 	let format = Format::from(args.format);
 	let resolution_suffix = args.resolution.filename_suffix();

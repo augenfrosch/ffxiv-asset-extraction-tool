@@ -1,6 +1,3 @@
-// Best I could come up with without having to manually ensure everything in the modules is used in some form
-#![allow(dead_code)]
-
 #[rustfmt::skip]
 #[path = "../boilmaster/crates/bm_asset/src/convert.rs"]
 mod convert;
@@ -13,6 +10,7 @@ pub mod error;
 #[path = "../boilmaster/crates/bm_asset/src/format.rs"]
 pub mod format;
 
+#[allow(clippy::needless_borrow)]
 #[rustfmt::skip]
 #[path = "../boilmaster/crates/bm_asset/src/service.rs"]
 pub mod service;
