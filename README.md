@@ -25,5 +25,5 @@ cd ffxiv-asset-extraction-tool
 ```
 2. build and run the CLI:
 ```
-cargo build --release -- --help
+cargo run --release -- --help
 ```
