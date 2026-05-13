@@ -2,7 +2,7 @@
 
 A WIP tool for extracting FFXIV assets.
 
-The main goal is to offer a (partial) alternative for the now effectively defunct `SaintCoinach.Cmd`, based on [boilmaster](https://github.com/ackwell/boilmaster)/[ironworks](https://github.com/ackwell/boilmaster) which power [XIVAPI v2](https://v2.xivapi.com/).
+The main goal is to offer a (partial) alternative for the now effectively defunct `SaintCoinach.Cmd`, based on [boilmaster](https://github.com/ackwell/boilmaster) / [ironworks](https://github.com/ackwell/ironworks) which power [XIVAPI v2](https://v2.xivapi.com/).
 
 
 > [!IMPORTANT]
