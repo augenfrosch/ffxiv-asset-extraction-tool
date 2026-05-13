@@ -1,0 +1,58 @@
+name: Rust
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["*"]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  check:
+    name: Check - ${{ matrix.platform.os-name }}
+    strategy:
+      fail-fast: false
+      matrix:
+        platform:
+          - os-name: linux-x86_64
+            runs-on: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+
+          - os-name: linux-aarch64
+            runs-on: ubuntu-24.04-arm
+            target: aarch64-unknown-linux-gnu
+
+          - os-name: windows-x86_64
+            runs-on: windows-latest
+            target: x86_64-pc-windows-msvc
+            binary-ext: .exe
+
+          - os-name: windows-aarch64
+            runs-on: windows-11-arm
+            target: aarch64-pc-windows-msvc
+            binary-ext: .exe
+
+          - os-name: macOS-x86_64
+            runs-on: macOS-latest
+            target: x86_64-apple-darwin
+
+          - os-name: macOS-aarch64
+            runs-on: macOS-latest
+            target: aarch64-apple-darwin
+
+    runs-on: ${{ matrix.platform.runs-on }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          submodules: recursive
+      - name: Update Rust
+        run: rustup update stable
+      - name: Check compilation
+        run: cargo check --verbose --workspace --all-targets
+      - name: Check formatting
+        run: cargo fmt --verbose --check
+      - name: Check for Clippy warnings
+        run: cargo clippy --verbose --workspace --all-targets -- --deny warnings

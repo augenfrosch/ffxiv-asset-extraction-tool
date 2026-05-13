@@ -1,0 +1,76 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  release:
+    permissions:
+      id-token: write
+      contents: read
+      attestations: write
+
+    name: Release - ${{ matrix.platform.os-name }}
+    strategy:
+      matrix:
+        platform:
+          - os-name: linux-x86_64
+            runs-on: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+
+          - os-name: linux-aarch64
+            runs-on: ubuntu-24.04-arm
+            target: aarch64-unknown-linux-gnu
+
+          - os-name: windows-x86_64
+            runs-on: windows-latest
+            target: x86_64-pc-windows-msvc
+            binary-ext: .exe
+
+          - os-name: windows-aarch64
+            runs-on: windows-11-arm
+            target: aarch64-pc-windows-msvc
+            binary-ext: .exe
+
+          - os-name: macOS-x86_64
+            runs-on: macOS-latest
+            target: x86_64-apple-darwin
+
+          - os-name: macOS-aarch64
+            runs-on: macOS-latest
+            target: aarch64-apple-darwin
+
+    runs-on: ${{ matrix.platform.runs-on }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          submodules: recursive
+      - name: Update Rust
+        run: rustup update stable
+      - name: Build
+        run: cargo build --release --locked --target ${{ matrix.platform.target }}
+      - name: Rename Binary
+        shell: bash
+        run: |
+          mv './target/${{ matrix.platform.target }}/release/ffxiv-asset-extraction-tool${{ matrix.platform.binary-ext }}' 'ffxiv-asset-extraction-tool-${{ matrix.platform.target }}${{ matrix.platform.binary-ext }}'
+      - name: Attest
+        uses: actions/attest@v4
+        with:
+          subject-path: 'ffxiv-asset-extraction-tool-${{ matrix.platform.target }}${{ matrix.platform.binary-ext }}'
+      - name: Upload artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: 'ffxiv-asset-extraction-tool-${{ matrix.platform.os-name }}'
+          path: 'ffxiv-asset-extraction-tool-${{ matrix.platform.target }}${{ matrix.platform.binary-ext }}'
+          if-no-files-found: error
+      - name: Release
+        uses: softprops/action-gh-release@v3
+        with:
+          files: 'ffxiv-asset-extraction-tool-${{ matrix.platform.target }}${{ matrix.platform.binary-ext }}'
+          draft: true
