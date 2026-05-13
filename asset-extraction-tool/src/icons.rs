@@ -12,7 +12,7 @@ use crate::{ImageFormat, VERSION};
 
 use anyhow::Result;
 use boilmaster_re_exports::asset::{format::Format, service::Service as AssetService};
-use clap::Parser;
+use clap::{ArgAction, Parser};
 
 #[derive(Debug, Clone, Copy)]
 pub struct Resolution {
@@ -167,6 +167,18 @@ pub struct IconsArgs {
 	/// IDs that don't map to non-existant icons are ignored. The ranges are specified using the Rust syntax for exclusive and inclusive ranges, e.g., `020000..058000` and `027104..=027110`.
 	#[arg{long, default_value_t = IconIdRange::from(0..1000000)}]
 	range: IconIdRange,
+
+	/// Export HQ icons in addition to the normal, NQ icons.
+	///
+	/// This is only applicable to item based icons.
+	#[arg(long, default_value_t = true, action = ArgAction::Set)]
+	hq: bool,
+
+	/// Export icons for the specified languages if they exist.
+	///
+	/// Passing an empty list effetively skips the export of localized icons.
+	#[arg(long, num_args = 0.., default_values = ["ja", "en", "de", "fr", "chs", "ko", "tc"], value_name = "LANGUAGE")]
+	languages: Vec<String>,
 }
 
 pub fn extract_icons(
@@ -177,12 +189,19 @@ pub fn extract_icons(
 	let _span = tracing::debug_span!("Extract icons").entered();
 
 	let format = Format::from(args.format);
+	let mut subfolders = args.languages;
+	subfolders.insert(0, String::new());
+	if args.hq {
+		subfolders.insert(1, "hq".to_string());
+	}
 	let resolution_suffix = args.resolution.filename_suffix();
 	for id in args.range {
 		let folder_id = id - (id % 1000);
-		for subfolder in ["", "hq/", "en/", "ja/", "de/", "fr/"] {
-			let path =
-				format!("ui/icon/{folder_id:0>6}/{subfolder}{id:0>6}{resolution_suffix}.tex");
+		for subfolder in &subfolders {
+			let subfolder_separator = if subfolder.is_empty() { "" } else { "/" };
+			let path = format!(
+				"ui/icon/{folder_id:0>6}/{subfolder}{subfolder_separator}{id:0>6}{resolution_suffix}.tex"
+			);
 
 			let bytes = match asset_service.convert(VERSION, &path, format) {
 				Ok(bytes) => bytes,
