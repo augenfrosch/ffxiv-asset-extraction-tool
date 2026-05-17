@@ -52,9 +52,9 @@ jobs:
         run: |
           rustup update stable
           rustup target add ${{ matrix.platform.target }}
-      - name: Check compilation
-        run: cargo check --verbose --workspace --all-targets --target ${{ matrix.platform.target }}
       - name: Check formatting
         run: cargo fmt --verbose --check
+      - name: Check compilation
+        run: cargo check --verbose --workspace --all-targets --target ${{ matrix.platform.target }}
       - name: Check for Clippy warnings
         run: cargo clippy --verbose --workspace --all-targets --target ${{ matrix.platform.target }} -- --deny warnings
