@@ -119,7 +119,7 @@ impl From<IconIdRange> for RangeInclusive<u32> {
 	fn from(range: IconIdRange) -> Self {
 		let IconIdRange { start, end, .. } = range.into_inclusive();
 		RangeInclusive {
-			start: start,
+			start,
 			last: end,
 		}
 	}
