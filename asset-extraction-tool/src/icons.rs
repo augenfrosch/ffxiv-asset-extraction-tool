@@ -313,7 +313,8 @@ pub fn extract_icons(
 
 			// Adding this made it run ~10s slower, even when only exporting a single resolution
 			// However, `dbg!` printing the path if the icon exists and skipping the read/write is still <5s,
-			// so not sure why. Maybe cache-miss related? TODO: look into this or maybe just rework rhis
+			// so not sure why. Maybe cache-miss related?
+			// MAYBE: look into this or maybe just rework this. Running it again, I didn't see the increase so
 			for (id, resolution) in
 				intersect(&id_range, &folder_id_range)
 					.into_iter()
