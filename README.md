@@ -16,7 +16,7 @@ See the [latest release](https://github.com/augenfrosch/ffxiv-asset-extraction-t
 
 ## Building from source
 
-The [Rust](https://rust-lang.org/) toolchain is required to build the tool. The minimum-supported rust version (MSRV) is `1.95.0`. TODO:!! Set in `Cargo.toml`s
+The [Rust](https://rust-lang.org/) toolchain is required to build the tool. The minimal supported Rust version (MSRV) is `1.95`.
 
 1. Clone the repository including the submodule:
 ```
