@@ -4,6 +4,8 @@ A WIP tool for extracting FFXIV assets.
 
 The main goal is to offer a (partial) alternative for the now effectively defunct `SaintCoinach.Cmd`, based on [boilmaster](https://github.com/ackwell/boilmaster) / [ironworks](https://github.com/ackwell/ironworks) which power [XIVAPI v2](https://v2.xivapi.com/).
 
+The tool currently also uses experimental non-existent asset detection, based on [Physis](https://github.com/redstrate/Physis) via [scree](https://github.com/augenfrosch/scree).
+
 
 > [!IMPORTANT]
 > The current implementation is very much work in progress. Only the `ui`/`uihd` & `maps` commands from `SaintCoinach.Cmd` have (rough) equivalents. However, it is not meant as a 1:1 replacement, the CLI argument & output folder structure are not compatible.
