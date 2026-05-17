@@ -22,21 +22,21 @@ pub struct Resolution {
 	index: u8,
 }
 
-impl Resolution {
-	pub fn filename_suffix(self) -> String {
-		match self.index {
-			0 => String::new(),
-			1..=u8::MAX => format!("_{self}"),
-		}
-	}
-}
-
 impl Display for Resolution {
 	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
 		let index = self.index;
-		match index {
-			0 => write!(f, "lr"),
-			_ => write!(f, "hr{index}"),
+		// This is a bit unintuitive but it it avoids having to allocate a `String` for the suffix
+		// MAYBE: look into a better alternative
+		if f.alternate() {
+			match index {
+				0 => write!(f, ""),
+				_ => write!(f, "_hr{index}"),
+			}
+		} else {
+			match index {
+				0 => write!(f, "lr"),
+				_ => write!(f, "hr{index}"),
+			}
 		}
 	}
 }
@@ -235,11 +235,11 @@ pub struct IconsArgs {
 	#[arg(short, long, default_value_t = ImageFormat::Png)]
 	format: ImageFormat,
 
-	/// Resolution to export.
+	/// Resolutions to export.
 	///
-	/// Defaults to `hr1`, which is the highest resolution available as of patch 7.5. Use `lr` for the low resolution.
-	#[arg(long, default_value_t = Resolution { index: 1 }, value_parser = Resolution::from_str)]
-	resolution: Resolution,
+	/// Defaults to only `hr1`, which is the highest resolution available as of patch 7.5. Use `lr` for the low resolution.
+	#[arg(long, num_args = 1.., default_values_t = [Resolution { index: 1 }], value_parser = Resolution::from_str)]
+	resolutions: Vec<Resolution>,
 
 	/// Range of icon IDs to attempt to export.
 	///
@@ -292,7 +292,6 @@ pub fn extract_icons(
 	if args.hq {
 		subfolders.insert(1, "hq".to_string());
 	}
-	let resolution_suffix = args.resolution.filename_suffix();
 
 	let id_range = RangeInclusive::from(args.range.clone());
 	let folder_range = IconFolderIdRange::from(args.range);
@@ -312,8 +311,18 @@ pub fn extract_icons(
 				continue;
 			}
 
-			for id in intersect(&id_range, &folder_id_range) {
-				let path = format!("{folder_path}{id:0>6}{resolution_suffix}.tex");
+			// Adding this made it run ~10s slower, even when only exporting a single resolution
+			// However, `dbg!` printing the path if the icon exists and skipping the read/write is still <5s,
+			// so not sure why. Maybe cache-miss related? TODO: look into this or maybe just rework rhis
+			for (id, resolution) in
+				intersect(&id_range, &folder_id_range)
+					.into_iter()
+					.flat_map(|id| {
+						args.resolutions
+							.iter()
+							.map(move |resolution| (id, *resolution))
+					}) {
+				let path = format!("{folder_path}{id:0>6}{resolution:#}.tex");
 				// This is currently slightly faster. MAYBE: look into fully utilizing the `FolderEntryInfo`
 				// to reduce binary search to only entries for files in the folder and redundant checksumming of the folder path.
 				// (That would require more testing to make sure `scree` is working without issues)
