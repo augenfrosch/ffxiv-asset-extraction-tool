@@ -112,7 +112,7 @@ fn main() -> Result<()> {
 	let asset_service = AssetService::new(data);
 
 	match command {
-		Command::Icons(args) => extract_icons(&asset_service, args, &output_dir)?,
+		Command::Icons(args) => extract_icons(input_dir, &asset_service, args, &output_dir)?,
 		Command::Maps(args) => extract_maps(ironworks, &asset_service, &args, &output_dir)?,
 	}
 

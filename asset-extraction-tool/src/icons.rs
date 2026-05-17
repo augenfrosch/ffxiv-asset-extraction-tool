@@ -1,11 +1,12 @@
 use core::range::{RangeInclusive, RangeInclusiveIter};
 use std::{
+	cmp::{max, min},
 	error::Error,
 	fmt::{Debug, Display},
 	fs,
 	num::ParseIntError,
 	ops::{Range as OpsRange, RangeInclusive as OpsRangeInclusive},
-	path::Path,
+	path::{Path, PathBuf},
 	str::FromStr,
 };
 
@@ -14,6 +15,7 @@ use crate::{ImageFormat, VERSION};
 use anyhow::Result;
 use boilmaster_re_exports::asset::{format::Format, service::Service as AssetService};
 use clap::{ArgAction, Parser};
+use scree::SqPackResources;
 
 #[derive(Debug, Clone, Copy)]
 pub struct Resolution {
@@ -142,7 +144,10 @@ struct IconFolderIdRange {
 
 impl IconFolderIdRange {
 	pub fn id_range(folder_id: u32) -> RangeInclusive<u32> {
-		RangeInclusive { start: folder_id, last: folder_id.saturating_add(999) }
+		RangeInclusive {
+			start: folder_id,
+			last: folder_id.saturating_add(999),
+		}
 	}
 }
 
@@ -160,7 +165,10 @@ impl Iterator for IconFolderIdRange {
 	type Item = u32;
 
 	fn next(&mut self) -> Option<Self::Item> {
-		let Self { start_folder_id, end_folder_id } = self;
+		let Self {
+			start_folder_id,
+			end_folder_id,
+		} = self;
 		if start_folder_id <= end_folder_id {
 			let next = *start_folder_id;
 			// It is guaranteed that the iteration doesn't get "stuck" at the `end_folder_id` if it is a multiple of 1000, since `u32::MAX` is not a multiple of 1000
@@ -253,14 +261,33 @@ pub struct IconsArgs {
 	/// Passing an empty list effetively skips the export of localized icons.
 	#[arg(long, num_args = 0.., default_values = ["ja", "en", "de", "fr", "chs", "ko", "tc"], value_name = "LANGUAGE")]
 	languages: Vec<String>,
+
+	/// Skip folders & files determined to be not-existent during the search for icons to export.
+	///
+	/// This should be left enabled. The option to disable it is only meant to be used if the detection is not working as intended.
+	#[arg(long, default_value_t = true, action = ArgAction::Set)]
+	detect_non_existent_folders_and_files: bool,
+}
+
+fn intersect<T>(r1: &RangeInclusive<T>, r2: &RangeInclusive<T>) -> RangeInclusive<T>
+where
+	T: Ord + Copy,
+{
+	RangeInclusive {
+		start: max(r1.start, r2.start),
+		last: min(r1.last, r2.last),
+	}
 }
 
 pub fn extract_icons(
+	input_dir: PathBuf,
 	asset_service: &AssetService,
 	args: IconsArgs,
 	output_dir: &Path,
 ) -> Result<()> {
 	let _span = tracing::debug_span!("Extract icons").entered();
+
+	let resources = SqPackResources::load(input_dir)?;
 
 	let format = Format::from(args.format);
 	let mut subfolders = args.languages;
@@ -270,37 +297,54 @@ pub fn extract_icons(
 	}
 	let resolution_suffix = args.resolution.filename_suffix();
 
-	// let id_range = RangeInclusive::from(args.range);
-	// let folder_range = IconFolderIdRange::from(args.range.clone());
-	// for folder_id in folder_range {
-	// 	let folder_id_range = IconFolderIdRange::id_range(folder_id);
+	let id_range = RangeInclusive::from(args.range.clone());
+	let folder_range = IconFolderIdRange::from(args.range);
+	for folder_id in folder_range {
+		let folder_id_range = IconFolderIdRange::id_range(folder_id);
 
-	// 	// TODO check if folder exists
-	// 	for id in args
-	// }
-	for id in args.range {
-		let folder_id = id - (id % 1000);
 		for subfolder in &subfolders {
 			let subfolder_separator = if subfolder.is_empty() { "" } else { "/" };
-			let path = format!(
-				"ui/icon/{folder_id:0>6}/{subfolder}{subfolder_separator}{id:0>6}{resolution_suffix}.tex"
-			);
+			let folder_path = format!("ui/icon/{folder_id:0>6}/{subfolder}{subfolder_separator}");
 
-			let bytes = match asset_service.convert(VERSION, &path, format) {
-				Ok(bytes) => bytes,
-				Err(boilmaster_re_exports::asset::error::Error::NotFound(_path)) => continue,
-				Err(boilmaster_re_exports::asset::error::Error::Failure(err)) => {
-					tracing::debug!(path, "Failure to read asset: {err}", err = err.root_cause());
-					continue;
-				},
-				Err(err) => Err(err)?,
-			};
-
-			let output_path = output_dir.join(path);
-			if let Some(parent) = output_path.parent() {
-				fs::create_dir_all(parent)?;
+			if args.detect_non_existent_folders_and_files
+				&& resources.folder_exists(folder_path.as_str()).is_none()
+			{
+				// MAYBE: use file count. Currently, exporting all resolutions is not supported,
+				// and simply dividing it only works if every icon has a version for each resolution.
+				// (Currently that would work but feels like it could change)
+				continue;
 			}
-			fs::write(output_path.with_extension(format.extension()), bytes)?;
+
+			for id in intersect(&id_range, &folder_id_range) {
+				let path = format!("{folder_path}{id:0>6}{resolution_suffix}.tex");
+				// This is currently slightly faster. MAYBE: look into fully utilizing the `FolderEntryInfo`
+				// to reduce binary search to only entries for files in the folder and redundant checksumming of the folder path.
+				// (That would require more testing to make sure `scree` is working without issues)
+				if args.detect_non_existent_folders_and_files
+					&& resources.file_exists(path.as_str()).is_none()
+				{
+					continue;
+				}
+				let bytes = match asset_service.convert(VERSION, &path, format) {
+					Ok(bytes) => bytes,
+					Err(boilmaster_re_exports::asset::error::Error::NotFound(_path)) => continue,
+					Err(boilmaster_re_exports::asset::error::Error::Failure(err)) => {
+						tracing::debug!(
+							path,
+							"Failure to read asset: {err}",
+							err = err.root_cause()
+						);
+						continue;
+					},
+					Err(err) => Err(err)?,
+				};
+
+				let output_path = output_dir.join(path);
+				if let Some(parent) = output_path.parent() {
+					fs::create_dir_all(parent)?;
+				}
+				fs::write(output_path.with_extension(format.extension()), bytes)?;
+			}
 		}
 	}
 

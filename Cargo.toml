@@ -20,6 +20,8 @@ boilmaster-re-exports = { path = "./boilmaster-re-exports" }
 bm_data = { path = "./boilmaster-re-exports/bm_data_replacement" }
 bm_version = { path = "./boilmaster-re-exports/bm_version_replacement" }
 
+scree = { version = "0.1.0", git = "https://github.com/augenfrosch/scree" }
+
 anyhow = { version = "1.0" }
 ironworks = { version = "0.4.1", git = "https://github.com/ackwell/ironworks" }
 tracing = { version = "0.1" }
@@ -29,3 +31,7 @@ tracing-subscriber = { version = "0.3" }
 opt-level = 3
 lto = true
 panic = "abort"
+
+[profile.release-with-debug]
+inherits = "release"
+debug = true
