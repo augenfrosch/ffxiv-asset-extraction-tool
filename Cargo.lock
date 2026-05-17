@@ -584,7 +584,7 @@ checksum = "d211803b9b6b570f68772237e415a029d5a50c65d382910b879fb19d3271f94d"
 [[package]]
 name = "physis-re-exports"
 version = "0.1.0"
-source = "git+https://github.com/augenfrosch/scree#d1443693279995d7676e82a19d0cd201342ce8db"
+source = "git+https://github.com/augenfrosch/scree#970f4060cb191d3b88db9b6aed142cc82d0ddfd9"
 dependencies = [
  "binrw 0.15.1",
  "strum 0.28.0",
@@ -702,7 +702,7 @@ checksum = "b39cdef0fa800fc44525c84ccb54a029961a8215f9619753635a9c0d2538d46d"
 [[package]]
 name = "scree"
 version = "0.1.0"
-source = "git+https://github.com/augenfrosch/scree#d1443693279995d7676e82a19d0cd201342ce8db"
+source = "git+https://github.com/augenfrosch/scree#970f4060cb191d3b88db9b6aed142cc82d0ddfd9"
 dependencies = [
  "physis-re-exports",
  "strum 0.28.0",
